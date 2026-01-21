@@ -5,6 +5,9 @@ An AI-powered marketing intelligence platform featuring 6 specialized agents tha
 ![Marketing Agent Suite](https://img.shields.io/badge/Powered%20by-Perplexity%20AI-6366f1)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+> [!WARNING]  
+> This repository is under heavy development and it is not yet stable or ready for use.
+
 ## 🌐 Live Demo
 
 **[View Live App →](https://marketing-agent-suite-production.up.railway.app)**
