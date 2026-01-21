@@ -1,0 +1,17 @@
+{
+  "name": "marketing-agent-suite",
+  "version": "1.0.0",
+  "description": "AI-powered Marketing Agent Suite with 6 specialized agents",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

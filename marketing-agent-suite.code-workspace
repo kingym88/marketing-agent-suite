@@ -1,0 +1,45 @@
+{
+  "folders": [
+    {
+      "path": ".",
+      "name": "Marketing Agent Suite"
+    }
+  ],
+  "settings": {
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "files.associations": {
+      "*.js": "javascript"
+    },
+    "emmet.includeLanguages": {
+      "javascript": "html"
+    },
+    "liveServer.settings.port": 3001,
+    "editor.wordWrap": "on",
+    "files.exclude": {
+      "**/.DS_Store": true,
+      "**/node_modules": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "esbenp.prettier-vscode",
+      "ritwickdey.liveserver",
+      "dbaeumer.vscode-eslint",
+      "formulahendry.auto-rename-tag"
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "chrome",
+        "request": "launch",
+        "name": "Open Marketing Suite",
+        "url": "http://localhost:3001",
+        "webRoot": "${workspaceFolder}"
+      }
+    ]
+  }
+}

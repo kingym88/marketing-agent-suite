@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marketing Agent Suite | AI-Powered Marketing Intelligence</title>
+    <meta
+      name="description"
+      content="Generate AI-powered market research and social media strategies with 6 specialized agents."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+
+  <body>
+    <div class="app-container">
+      <!-- Animated Background -->
+      <div class="bg-gradient"></div>
+      <div class="bg-mesh"></div>
+
+      <!-- Header -->
+      <header class="header">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2L2 7L12 12L22 7L12 2Z"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M2 17L12 22L22 17"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M2 12L12 17L22 12"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <div class="logo-text">
+            <h1>Marketing<span>Suite</span></h1>
+            <p class="tagline">6 AI Agents • Powered by Perplexity</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="btn-primary" id="runAllBtn">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polygon points="5 3 19 12 5 21 5 3" />
+            </svg>
+            Run All Agents
+          </button>
+          <label
+            class="cache-toggle"
+            title="Use cached API responses for faster UI testing"
+          >
+            <input type="checkbox" id="useCacheToggle" />
+            <span class="cache-toggle-label">🗄️ Use Cache</span>
+          </label>
+          <button class="btn-secondary" id="exportBtn" disabled>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Export All
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Product Input Section -->
+        <section class="product-section glass-panel">
+          <div class="section-header">
+            <div class="section-icon">🎯</div>
+            <div>
+              <h2>Define Your Product</h2>
+              <p>Provide details to power all 6 AI agents</p>
+            </div>
+          </div>
+
+          <form id="productForm" class="product-form">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="productName">Product Name</label>
+                <input
+                  type="text"
+                  id="productName"
+                  placeholder="e.g., FocusFlow"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="productCategory">Category</label>
+                <select id="productCategory" required>
+                  <option value="">Select category...</option>
+                  <option value="software">Software/App</option>
+                  <option value="ecommerce">E-Commerce</option>
+                  <option value="saas">SaaS Platform</option>
+                  <option value="service">Professional Service</option>
+                  <option value="consumer">Consumer Product</option>
+                  <option value="education">Education/Course</option>
+                  <option value="health">Health & Wellness</option>
+                  <option value="finance">Financial Services</option>
+                </select>
+              </div>
+
+              <div class="form-group full-width">
+                <label for="productDescription">Description</label>
+                <textarea
+                  id="productDescription"
+                  rows="3"
+                  placeholder="Describe what your product does and its key value proposition..."
+                  required
+                ></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="targetMarket">Target Market</label>
+                <input
+                  type="text"
+                  id="targetMarket"
+                  placeholder="e.g., Remote workers, 25-45"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="pricePoint">Price Point</label>
+                <input
+                  type="text"
+                  id="pricePoint"
+                  placeholder="e.g., $9.99/month"
+                  required
+                />
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <!-- Agent Tab Navigation -->
+        <div class="tab-navigation agent-tabs">
+          <button class="tab-btn active" data-tab="persona">
+            <span class="tab-icon">👥</span>
+            <span class="tab-label">Persona</span>
+          </button>
+          <button class="tab-btn" data-tab="impersonator">
+            <span class="tab-icon">🎭</span>
+            <span class="tab-label">Impersonator</span>
+          </button>
+          <button class="tab-btn" data-tab="insights">
+            <span class="tab-icon">📊</span>
+            <span class="tab-label">Insights</span>
+          </button>
+          <button class="tab-btn" data-tab="trends">
+            <span class="tab-icon">📈</span>
+            <span class="tab-label">Trends</span>
+          </button>
+          <button class="tab-btn" data-tab="hooks">
+            <span class="tab-icon">🎣</span>
+            <span class="tab-label">Hooks</span>
+          </button>
+          <button class="tab-btn" data-tab="calendar">
+            <span class="tab-icon">📅</span>
+            <span class="tab-label">Calendar</span>
+          </button>
+        </div>
+
+        <!-- Agent 1: Persona Tab -->
+        <section class="tab-content active" id="personaTab">
+          <div class="agent-card glass-panel" data-agent="persona">
+            <div class="agent-header">
+              <div class="agent-icon" style="--agent-color: #6366f1">
+                <span>👥</span>
+              </div>
+              <div class="agent-info">
+                <h3>Persona Agent</h3>
+                <span class="agent-status" data-status="ready">Ready</span>
+              </div>
+              <button class="btn-primary run-agent-btn" id="runPersonaBtn">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+                Run Agent
+              </button>
+            </div>
+            <p class="agent-description">
+              Generates 5 target personas with demographics, psychographics, and
+              shopping behavior. This is the first step in understanding your
+              target market.
+            </p>
+            <div class="agent-output">
+              <div class="output-placeholder">
+                <div class="placeholder-pulse"></div>
+                <p>Click "Run Agent" to generate personas...</p>
+              </div>
+              <div class="output-content" style="display: none"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Agent 2: Impersonator Tab -->
+        <section class="tab-content" id="impersonatorTab">
+          <div class="agent-card glass-panel" data-agent="impersonator">
+            <div class="agent-header">
+              <div class="agent-icon" style="--agent-color: #8b5cf6">
+                <span>🎭</span>
+              </div>
+              <div class="agent-info">
+                <h3>Customer Impersonator</h3>
+                <span class="agent-status" data-status="locked">Locked</span>
+              </div>
+              <button
+                class="btn-primary run-agent-btn"
+                id="runImpersonatorBtn"
+                disabled
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+                Run Agent
+              </button>
+            </div>
+            <div class="dependency-notice">
+              <div class="notice-icon">🔒</div>
+              <p>
+                Complete <strong>Persona Agent</strong> first to unlock this
+                agent
+              </p>
+            </div>
+            <p class="agent-description">
+              Impersonates each persona to give authentic product impressions
+              and feedback from different customer perspectives.
+            </p>
+            <div class="agent-output">
+              <div class="output-placeholder">
+                <div class="placeholder-pulse"></div>
+                <p>Requires personas to be generated first...</p>
+              </div>
+              <div class="output-content" style="display: none"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Agent 3: Insights Tab -->
+        <section class="tab-content" id="insightsTab">
+          <div class="agent-card glass-panel" data-agent="insights">
+            <div class="agent-header">
+              <div class="agent-icon" style="--agent-color: #ec4899">
+                <span>📊</span>
+              </div>
+              <div class="agent-info">
+                <h3>Insights Analyst</h3>
+                <span class="agent-status" data-status="locked">Locked</span>
+              </div>
+              <button
+                class="btn-primary run-agent-btn"
+                id="runInsightsBtn"
+                disabled
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+                Run Agent
+              </button>
+            </div>
+            <div class="dependency-notice">
+              <div class="notice-icon">🔒</div>
+              <p>
+                Complete <strong>Customer Impersonator</strong> first to unlock
+                this agent
+              </p>
+            </div>
+            <p class="agent-description">
+              Analyzes all persona responses to create actionable marketing
+              audience insights and recommendations.
+            </p>
+            <div class="agent-output">
+              <div class="output-placeholder">
+                <div class="placeholder-pulse"></div>
+                <p>Requires customer impressions to be generated first...</p>
+              </div>
+              <div class="output-content" style="display: none"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Agent 4: Trends Tab -->
+        <section class="tab-content" id="trendsTab">
+          <div class="agent-card glass-panel" data-agent="trends">
+            <div class="agent-header">
+              <div class="agent-icon" style="--agent-color: #f59e0b">
+                <span>📈</span>
+              </div>
+              <div class="agent-info">
+                <h3>Trend Analyzer</h3>
+                <span class="agent-status" data-status="locked">Locked</span>
+              </div>
+              <button
+                class="btn-primary run-agent-btn"
+                id="runTrendsBtn"
+                disabled
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+                Run Agent
+              </button>
+            </div>
+            <div class="dependency-notice">
+              <div class="notice-icon">🔒</div>
+              <p>
+                Complete <strong>Insights Analyst</strong> first to unlock this
+                agent
+              </p>
+            </div>
+            <p class="agent-description">
+              Identifies platform trends & creates strategies for Instagram,
+              TikTok, Meta, and X based on your audience insights.
+            </p>
+            <div class="agent-output">
+              <div class="output-placeholder">
+                <div class="placeholder-pulse"></div>
+                <p>Requires insights to be generated first...</p>
+              </div>
+              <div class="output-content" style="display: none"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Agent 5: Hooks Tab -->
+        <section class="tab-content" id="hooksTab">
+          <div class="agent-card glass-panel" data-agent="hooks">
+            <div class="agent-header">
+              <div class="agent-icon" style="--agent-color: #10b981">
+                <span>🎣</span>
+              </div>
+              <div class="agent-info">
+                <h3>Viral Hooks Creator</h3>
+                <span class="agent-status" data-status="locked">Locked</span>
+              </div>
+              <button
+                class="btn-primary run-agent-btn"
+                id="runHooksBtn"
+                disabled
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+                Run Agent
+              </button>
+            </div>
+            <div class="dependency-notice">
+              <div class="notice-icon">🔒</div>
+              <p>
+                Complete <strong>Trend Analyzer</strong> first to unlock this
+                agent
+              </p>
+            </div>
+            <p class="agent-description">
+              Creates 5 viral hooks + 3 captions/scripts per platform (12 total)
+              optimized for maximum engagement.
+            </p>
+            <div class="agent-output">
+              <div class="output-placeholder">
+                <div class="placeholder-pulse"></div>
+                <p>Requires trend analysis to be generated first...</p>
+              </div>
+              <div class="output-content" style="display: none"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Agent 6: Calendar Tab -->
+        <section class="tab-content" id="calendarTab">
+          <div class="agent-card glass-panel" data-agent="calendar">
+            <div class="agent-header">
+              <div class="agent-icon" style="--agent-color: #3b82f6">
+                <span>📅</span>
+              </div>
+              <div class="agent-info">
+                <h3>Content Calendar</h3>
+                <span class="agent-status" data-status="locked">Locked</span>
+              </div>
+              <button
+                class="btn-primary run-agent-btn"
+                id="runCalendarBtn"
+                disabled
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+                Run Agent
+              </button>
+            </div>
+            <div class="dependency-notice">
+              <div class="notice-icon">🔒</div>
+              <p>
+                Complete <strong>Viral Hooks Creator</strong> first to unlock
+                this agent
+              </p>
+            </div>
+            <p class="agent-description">
+              30-day content calendar with posting times, hashtags, growth
+              hacks, and a balanced content mix.
+            </p>
+            <div class="agent-output">
+              <div class="output-placeholder">
+                <div class="placeholder-pulse"></div>
+                <p>Requires hooks to be generated first...</p>
+              </div>
+              <div class="output-content" style="display: none"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Global Progress -->
+        <div class="progress-section" id="agentProgress" style="display: none">
+          <div class="progress-bar">
+            <div class="progress-fill" id="agentProgressFill"></div>
+          </div>
+          <p class="progress-text" id="agentProgressText">Processing...</p>
+        </div>
+      </main>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <p>
+          Powered by <strong>Perplexity AI</strong> • 6 Specialized Agents •
+          Built for Smart Marketers
+        </p>
+      </footer>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
