@@ -1086,7 +1086,7 @@ function renderCalendarView(data) {
       ? `<img src="${day.generated_image_url}" alt="Day ${day.day} post visual" loading="lazy" />`
       : `<div class="image-prompt-placeholder">
            <span class="image-prompt-label">🎨 Image prompt ready</span>
-           <p>${(day.image_prompt || "").substring(0, 120)}...</p>
+           <p>${day.image_prompt || ""}</p>
          </div>`;
 
     const fullCaptionHtml = (day.full_caption || "").replace(/\n/g, "<br>");
