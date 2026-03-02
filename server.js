@@ -8,8 +8,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.PERPLEXITY_API_KEY;
 
-// Parse JSON bodies
-app.use(express.json());
+// Parse JSON bodies (increase limit for large AI responses)
+app.use(express.json({ limit: "10mb" }));
 
 // Serve static files from current directory
 app.use(express.static(__dirname));
@@ -22,6 +22,10 @@ app.post("/api/chat", async (req, res) => {
       .json({ error: { message: "Server missing API configuration" } });
   }
 
+  // 120s timeout — large calendar requests can take 60-90s
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 120000);
+
   try {
     const response = await fetch("https://api.perplexity.ai/chat/completions", {
       method: "POST",
@@ -30,6 +34,7 @@ app.post("/api/chat", async (req, res) => {
         Authorization: `Bearer ${API_KEY}`,
       },
       body: JSON.stringify(req.body),
+      signal: controller.signal,
     });
 
     const data = await response.json();
@@ -40,8 +45,14 @@ app.post("/api/chat", async (req, res) => {
 
     res.json(data);
   } catch (error) {
+    if (error.name === "AbortError") {
+      console.error("Proxy timeout: Perplexity API took too long");
+      return res.status(504).json({ error: { message: "Request timed out. Try again or reduce request size." } });
+    }
     console.error("Proxy error:", error);
     res.status(500).json({ error: { message: error.message } });
+  } finally {
+    clearTimeout(timeout);
   }
 });
 

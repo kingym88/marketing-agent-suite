@@ -110,7 +110,7 @@ Build the 30-day narrative arc calendar. Every post must feel like it was writte
           { role: "system", content: this.systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        max_tokens: 8000,
+        max_tokens: 4000,
         temperature: 0.82,
       }),
     });
