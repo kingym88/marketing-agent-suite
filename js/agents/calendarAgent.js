@@ -112,7 +112,6 @@ Build the 30-day narrative arc calendar. Every post must feel like it was writte
         ],
         max_tokens: 8000,
         temperature: 0.82,
-        response_format: { type: "json_object" },
       }),
     });
 
