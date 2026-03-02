@@ -110,7 +110,7 @@ Build the 30-day narrative arc calendar. Every post must feel like it was writte
           { role: "system", content: this.systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        max_tokens: 4000,
+        max_tokens: 7000,
         temperature: 0.82,
       }),
     });
@@ -123,18 +123,21 @@ Build the 30-day narrative arc calendar. Every post must feel like it was writte
     const data = await response.json();
     const rawContent = data.choices[0].message.content;
 
-    // Strip markdown code fences if the model wrapped the JSON (e.g. ```json ... ```)
+    // Strip markdown code fences robustly — handles ```json, ``` with or without newlines
     const cleaned = rawContent
       .trim()
-      .replace(/^```(?:json)?\s*/i, "")
-      .replace(/\s*```$/, "")
+      .replace(/^```(?:json|JSON)?\r?\n?/, "")
+      .replace(/\r?\n?```\s*$/, "")
       .trim();
 
     try {
       return JSON.parse(cleaned);
     } catch (e) {
+      const hint = cleaned.length > 100 && !cleaned.endsWith("}")
+        ? " (response may have been truncated — try again)"
+        : "";
       throw new Error(
-        `CalendarAgent: Failed to parse JSON response from planning API. Raw content: ${rawContent.substring(0, 200)}...`,
+        `CalendarAgent: Failed to parse JSON response from planning API${hint}. Raw content: ${rawContent.substring(0, 200)}...`,
       );
     }
   }
