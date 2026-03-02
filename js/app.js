@@ -606,7 +606,7 @@ async function handleRunCalendar() {
   window.appState.isRunning = true;
   elements.runCalendarBtn.disabled = true;
   setAgentStatus("calendar", "running");
-  showProgress("Building Content Calendar...");
+  showProgress("📅 Building your content strategy... (this may take 30–60 seconds)");
 
   try {
     // Check cache first
@@ -1040,570 +1040,101 @@ function formatPersonaContent(block) {
 }
 
 // Calendar Rendering Functions
-function renderCalendarView(content) {
-  const calendarData = parseCalendarContent(content);
+function renderCalendarView(data) {
+  // Validate input — new agent returns a JSON object
+  if (!data || typeof data !== "object" || !Array.isArray(data.calendar) || data.calendar.length === 0) {
+    return `<div class="calendar-error"><p>⚠️ Calendar data could not be loaded. Please try again.</p></div>`;
+  }
+
+  const phaseSlug = (phase) => (phase || "").toLowerCase().replace(/\s+/g, "-");
+
+  const themeBadges = (data.weekly_themes || []).map((theme, i) =>
+    `<span class="weekly-theme-badge">Week ${i + 1}: ${theme}</span>`
+  ).join("");
+
+  const strategyHeader = `
+    <div class="calendar-strategy-header">
+      <p class="calendar-strategy-summary">${data.strategy_summary || ""}</p>
+      <div class="calendar-weekly-themes">${themeBadges}</div>
+    </div>
+  `;
+
+  const cards = data.calendar.map((day) => {
+    if (day.is_flex_slot) {
+      return `
+        <div class="calendar-card calendar-card--flex">
+          <div class="calendar-card-header">
+            <span class="day-number">Day ${day.day}</span>
+            <span class="flex-badge">⚡ Trending Opportunity</span>
+          </div>
+          <div class="calendar-card-body">
+            <p class="flex-placeholder">Leave this slot open for real-time trending content.</p>
+          </div>
+        </div>
+      `;
+    }
+
+    const hashtagsHtml = (day.hashtags || []).map(h =>
+      `<span class="hashtag-tag">${h}</span>`
+    ).join("");
+
+    const repurposeHtml = (day.repurpose_as || []).map(r =>
+      `<span class="repurpose-item">${r}</span>`
+    ).join("");
+
+    const imageHtml = day.generated_image_url
+      ? `<img src="${day.generated_image_url}" alt="Day ${day.day} post visual" loading="lazy" />`
+      : `<div class="image-prompt-placeholder">
+           <span class="image-prompt-label">🎨 Image prompt ready</span>
+           <p>${(day.image_prompt || "").substring(0, 120)}...</p>
+         </div>`;
+
+    const fullCaptionHtml = (day.full_caption || "").replace(/\n/g, "<br>");
+
+    return `
+      <div class="calendar-card">
+        <div class="calendar-card-header">
+          <span class="day-number">Day ${day.day} — ${day.date_offset || ""}</span>
+          <span class="narrative-badge narrative-badge--${phaseSlug(day.narrative_phase)}">${day.narrative_phase || ""}</span>
+          <span class="platform-tag">${day.platform || ""}</span>
+          <span class="format-tag">${day.format || ""}</span>
+          <span class="post-time">${day.post_time || ""}</span>
+        </div>
+        <div class="calendar-card-image">${imageHtml}</div>
+        <div class="calendar-card-body">
+          <p class="post-hook">${day.hook || ""}</p>
+          <p class="caption-opener">${day.caption_opener || ""}</p>
+          <details class="full-caption-toggle">
+            <summary>Full Caption ▾</summary>
+            <p class="full-caption">${fullCaptionHtml}</p>
+          </details>
+          <div class="hashtags-row">${hashtagsHtml}</div>
+          <div class="engagement-row">
+            <span class="engagement-goal">🎯 Goal: ${day.engagement_trigger || ""}</span>
+            <span class="engagement-cta">📣 CTA: ${day.engagement_cta || ""}</span>
+          </div>
+          <div class="repurpose-row">
+            <span class="repurpose-label">♻️ Repurpose as:</span>
+            ${repurposeHtml}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
 
   return `
-        <div class="calendar-container">
-            <div class="calendar-header">
-                <div class="calendar-title">
-                    <h3>30-Day Content Calendar</h3>
-                    <span class="calendar-month-badge">Starting Today</span>
-                </div>
-                <div class="view-toggle">
-                    <button class="view-toggle-btn active" data-view="list">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="8" y1="6" x2="21" y2="6"></line>
-                            <line x1="8" y1="12" x2="21" y2="12"></line>
-                            <line x1="8" y1="18" x2="21" y2="18"></line>
-                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                        </svg>
-                        List
-                    </button>
-                    <button class="view-toggle-btn" data-view="grid">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="14" width="7" height="7"></rect>
-                            <rect x="3" y="14" width="7" height="7"></rect>
-                        </svg>
-                        Grid
-                    </button>
-                </div>
-            </div>
-            
-            <div class="calendar-legend">
-                <div class="legend-item">
-                    <div class="legend-color value"></div>
-                    <span>Value (35%)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color authority"></div>
-                    <span>Authority (20%)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color engagement"></div>
-                    <span>Engagement (25%)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color cta"></div>
-                    <span>CTA (20%)</span>
-                </div>
-            </div>
-            
-            <!-- List View (default) -->
-            <div class="calendar-list-view active">
-                ${renderListView(calendarData)}
-            </div>
-            
-            <!-- Grid View -->
-            <div class="calendar-grid-view hidden">
-                <div class="calendar-grid">
-                    <div class="calendar-week-header">
-                        <div class="week-day-label">Sun</div>
-                        <div class="week-day-label">Mon</div>
-                        <div class="week-day-label">Tue</div>
-                        <div class="week-day-label">Wed</div>
-                        <div class="week-day-label">Thu</div>
-                        <div class="week-day-label">Fri</div>
-                        <div class="week-day-label">Sat</div>
-                    </div>
-                    ${renderGridView(calendarData)}
-                </div>
-            </div>
-        </div>
-        
-        <!-- Day Detail Modal -->
-        <div class="day-modal-overlay" id="dayModal">
-            <div class="day-modal">
-                <div class="modal-header">
-                    <h3 id="modalTitle">Day 1</h3>
-                    <button class="modal-close" id="closeModal">✕</button>
-                </div>
-                <div class="modal-body" id="modalBody">
-                </div>
-            </div>
-        </div>
-    `;
+    <div class="calendar-output-wrapper">
+      ${strategyHeader}
+      <div class="calendar-cards-grid">${cards}</div>
+    </div>
+  `;
 }
 
-function parseCalendarContent(content) {
-  const days = [];
-  const contentTypes = ["value", "authority", "engagement", "cta"];
-  const formats = [
-    "Reel",
-    "Carousel",
-    "Story",
-    "Thread",
-    "Post",
-    "Video",
-    "Live",
-  ];
-  const platforms = [
-    "Instagram",
-    "TikTok",
-    "Meta",
-    "X",
-    "Twitter",
-    "Facebook",
-    "LinkedIn",
-  ];
-
-  // Try to parse structured day information from the content
-  const lines = content.split("\n");
-  let currentDay = null;
-  let dayCounter = 0;
-
-  for (const line of lines) {
-    // Look for day markers
-    const dayMatch = line.match(/(?:day|#)\s*(\d+)/i);
-    if (dayMatch && parseInt(dayMatch[1]) <= 30) {
-      if (currentDay) {
-        days.push(currentDay);
-      }
-      dayCounter = parseInt(dayMatch[1]);
-      currentDay = {
-        day: dayCounter,
-        theme: "",
-        description: "",
-        platforms: [],
-        format: "",
-        time: "",
-        hashtags: [],
-        growthHack: "",
-        contentType: contentTypes[dayCounter % 4],
-      };
-    }
-
-    if (currentDay) {
-      // Extract theme
-      if (line.toLowerCase().includes("theme") || line.includes(":")) {
-        const themeMatch = line.match(/theme[:\s]+(.+)/i);
-        if (themeMatch) currentDay.theme = themeMatch[1].trim();
-      }
-
-      // Extract platforms
-      for (const platform of platforms) {
-        if (
-          line.toLowerCase().includes(platform.toLowerCase()) &&
-          !currentDay.platforms.includes(platform)
-        ) {
-          currentDay.platforms.push(platform);
-        }
-      }
-
-      // Extract format
-      for (const format of formats) {
-        if (
-          line.toLowerCase().includes(format.toLowerCase()) &&
-          !currentDay.format
-        ) {
-          currentDay.format = format;
-        }
-      }
-
-      // Extract time
-      const timeMatch = line.match(/(\d{1,2}(?::\d{2})?\s*(?:am|pm|AM|PM))/);
-      if (timeMatch && !currentDay.time) {
-        currentDay.time = timeMatch[1];
-      }
-
-      // Extract hashtags
-      const hashtagMatches = line.match(/#\w+/g);
-      if (hashtagMatches) {
-        currentDay.hashtags.push(...hashtagMatches.slice(0, 5));
-      }
-
-      // Extract description (content description)
-      if (
-        line.toLowerCase().includes("content") ||
-        line.toLowerCase().includes("post") ||
-        line.toLowerCase().includes("description")
-      ) {
-        const descMatch = line.match(/(?:content|post|description)[:\s]+(.+)/i);
-        if (descMatch && descMatch[1].length > 10) {
-          currentDay.description = descMatch[1].trim();
-        }
-      }
-
-      // Extract growth hack
-      if (
-        line.toLowerCase().includes("growth") ||
-        line.toLowerCase().includes("tip") ||
-        line.toLowerCase().includes("hack")
-      ) {
-        const hackMatch = line.match(/(?:growth hack|tip|hack)[:\s]+(.+)/i);
-        if (hackMatch) {
-          currentDay.growthHack = hackMatch[1].trim();
-        }
-      }
-
-      // Determine content type from keywords
-      if (
-        line.toLowerCase().includes("value") ||
-        line.toLowerCase().includes("educational") ||
-        line.toLowerCase().includes("tip")
-      ) {
-        currentDay.contentType = "value";
-      } else if (
-        line.toLowerCase().includes("authority") ||
-        line.toLowerCase().includes("case study") ||
-        line.toLowerCase().includes("expertise")
-      ) {
-        currentDay.contentType = "authority";
-      } else if (
-        line.toLowerCase().includes("engagement") ||
-        line.toLowerCase().includes("poll") ||
-        line.toLowerCase().includes("question")
-      ) {
-        currentDay.contentType = "engagement";
-      } else if (
-        line.toLowerCase().includes("cta") ||
-        line.toLowerCase().includes("promotion") ||
-        line.toLowerCase().includes("offer")
-      ) {
-        currentDay.contentType = "cta";
-      }
-
-      // Add description from content line if no specific description found
-      if (
-        !currentDay.description &&
-        line.length > 30 &&
-        !line.startsWith("#") &&
-        !line.startsWith("*")
-      ) {
-        currentDay.description = line
-          .replace(/^\d+\.\s*/, "")
-          .replace(/\*\*/g, "")
-          .trim();
-      }
-    }
-  }
-
-  // Push last day
-  if (currentDay) {
-    days.push(currentDay);
-  }
-
-  // If parsing didn't find structured days, generate placeholder days
-  if (days.length < 30) {
-    const existingDays = new Set(days.map((d) => d.day));
-    for (let i = 1; i <= 30; i++) {
-      if (!existingDays.has(i)) {
-        days.push({
-          day: i,
-          theme: getDefaultTheme(i),
-          description:
-            extractDescriptionForDay(content, i) || "Content to be planned",
-          platforms: getDefaultPlatforms(i),
-          format: getDefaultFormat(i),
-          time: getDefaultTime(i),
-          hashtags: [],
-          growthHack: "",
-          contentType: contentTypes[(i - 1) % 4],
-        });
-      }
-    }
-  }
-
-  // Sort by day number
-  days.sort((a, b) => a.day - b.day);
-
-  // Ensure we have exactly 30 days
-  return days.slice(0, 30);
+function setupCalendarEventListeners(outputEl) {
+  // Full caption toggle is handled natively by <details> elements
 }
 
-function extractDescriptionForDay(content, dayNum) {
-  const patterns = [
-    new RegExp(`day\\s*${dayNum}[^\\n]*\\n([^\\n]+)`, "i"),
-    new RegExp(`#${dayNum}[^\\n]*\\n([^\\n]+)`, "i"),
-    new RegExp(`${dayNum}\\.[^\\n]*\\n([^\\n]+)`, "i"),
-  ];
 
-  for (const pattern of patterns) {
-    const match = content.match(pattern);
-    if (match && match[1].length > 10) {
-      return match[1].replace(/\*\*/g, "").trim().substring(0, 100);
-    }
-  }
-  return null;
-}
-
-function getDefaultTheme(day) {
-  const themes = ["Value", "Authority", "Engagement", "CTA"];
-  return themes[(day - 1) % 4];
-}
-
-function getDefaultPlatforms(day) {
-  const platformSets = [
-    ["Instagram", "TikTok"],
-    ["X", "LinkedIn"],
-    ["Instagram", "Meta"],
-    ["TikTok", "X"],
-  ];
-  return platformSets[(day - 1) % 4];
-}
-
-function getDefaultFormat(day) {
-  const formats = ["Reel", "Carousel", "Story", "Thread"];
-  return formats[(day - 1) % 4];
-}
-
-function getDefaultTime(day) {
-  const times = ["9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "8:00 PM"];
-  return times[(day - 1) % 5];
-}
-
-function renderListView(calendarData) {
-  // Group by weeks
-  const weeks = [];
-  for (let i = 0; i < calendarData.length; i += 7) {
-    weeks.push({
-      weekNum: Math.floor(i / 7) + 1,
-      days: calendarData.slice(i, i + 7),
-    });
-  }
-
-  const weekThemes = [
-    "Foundation & Awareness",
-    "Value & Education",
-    "Engagement & Community",
-    "Conversion & Growth",
-    "Momentum & Scale",
-  ];
-
-  return weeks
-    .map(
-      (week, idx) => `
-        <div class="week-group">
-            <div class="week-group-header">
-                <span class="week-number">Week ${week.weekNum}</span>
-                <span class="week-theme">${weekThemes[idx] || "Strategic Growth"}</span>
-            </div>
-            ${week.days.map((day) => renderListDayCard(day)).join("")}
-        </div>
-    `,
-    )
-    .join("");
-}
-
-function renderListDayCard(day) {
-  const platformIcons = {
-    Instagram: "📸",
-    TikTok: "🎵",
-    Meta: "📘",
-    X: "𝕏",
-    Twitter: "𝕏",
-    Facebook: "📘",
-    LinkedIn: "💼",
-  };
-
-  return `
-        <div class="list-day-card ${day.contentType}" data-day="${day.day}">
-            <div class="list-day-number">
-                <div class="day">${day.day}</div>
-                <div class="label">Day</div>
-            </div>
-            <div class="list-day-content">
-                <h4>${day.theme || getDefaultTheme(day.day)} Post</h4>
-                <p>${day.description || "Strategic content aligned with daily theme"}</p>
-                <div class="list-day-meta">
-                    <span class="meta-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                        ${day.time || getDefaultTime(day.day)}
-                    </span>
-                    <span class="meta-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="9" y1="3" x2="9" y2="21"></line>
-                        </svg>
-                        ${day.format || getDefaultFormat(day.day)}
-                    </span>
-                    <span class="meta-item">
-                        ${(day.platforms.length > 0 ? day.platforms : getDefaultPlatforms(day.day)).map((p) => platformIcons[p] || "📱").join(" ")}
-                        ${(day.platforms.length > 0 ? day.platforms : getDefaultPlatforms(day.day)).join(", ")}
-                    </span>
-                </div>
-                ${
-                  day.hashtags.length > 0
-                    ? `
-                    <div class="hashtag-cloud">
-                        ${day.hashtags
-                          .slice(0, 5)
-                          .map((tag) => `<span class="hashtag">${tag}</span>`)
-                          .join("")}
-                    </div>
-                `
-                    : ""
-                }
-                ${
-                  day.growthHack
-                    ? `
-                    <div class="growth-hack">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
-                        </svg>
-                        ${day.growthHack}
-                    </div>
-                `
-                    : ""
-                }
-            </div>
-            <div class="list-day-actions">
-                <span class="content-type-badge ${day.contentType}">${day.contentType}</span>
-                <span class="format-badge">${day.format || getDefaultFormat(day.day)}</span>
-            </div>
-        </div>
-    `;
-}
-
-function renderGridView(calendarData) {
-  // Get current day of week to start calendar appropriately
-  const today = new Date();
-  const startDayOfWeek = today.getDay(); // 0 = Sunday
-
-  let html = "";
-
-  // Add empty cells for days before start
-  for (let i = 0; i < startDayOfWeek; i++) {
-    html += '<div class="calendar-day empty"></div>';
-  }
-
-  // Render each day
-  calendarData.forEach((day) => {
-    html += renderGridDayCard(day);
-  });
-
-  // Add empty cells to complete the last week
-  const totalCells = startDayOfWeek + calendarData.length;
-  const remainingCells = (7 - (totalCells % 7)) % 7;
-  for (let i = 0; i < remainingCells; i++) {
-    html += '<div class="calendar-day empty"></div>';
-  }
-
-  return html;
-}
-
-function renderGridDayCard(day) {
-  const platformIcons = {
-    Instagram: "📸",
-    TikTok: "🎵",
-    Meta: "📘",
-    X: "𝕏",
-    Twitter: "𝕏",
-    Facebook: "📘",
-    LinkedIn: "💼",
-  };
-
-  const platforms =
-    day.platforms.length > 0 ? day.platforms : getDefaultPlatforms(day.day);
-
-  return `
-        <div class="calendar-day" data-day="${day.day}">
-            <div class="day-header">
-                <span class="day-number">${day.day}</span>
-                <span class="content-type-badge ${day.contentType}">${day.contentType}</span>
-            </div>
-            <div class="day-content">
-                <p class="day-description">${day.description || "Content aligned with theme"}</p>
-                <div class="platform-icons">
-                    ${platforms.map((p) => `<span class="platform-icon" title="${p}">${platformIcons[p] || "📱"}</span>`).join("")}
-                </div>
-            </div>
-            <div class="day-footer">
-                <span class="post-time">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
-                    ${day.time || getDefaultTime(day.day)}
-                </span>
-                <span class="format-badge">${day.format || getDefaultFormat(day.day)}</span>
-            </div>
-        </div>
-    `;
-}
-
-function setupCalendarEventListeners(container) {
-  // View toggle
-  const viewToggles = container.querySelectorAll(".view-toggle-btn");
-  const listView = container.querySelector(".calendar-list-view");
-  const gridView = container.querySelector(".calendar-grid-view");
-
-  viewToggles.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      viewToggles.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-
-      if (btn.dataset.view === "list") {
-        listView.classList.add("active");
-        gridView.classList.add("hidden");
-      } else {
-        listView.classList.remove("active");
-        gridView.classList.remove("hidden");
-      }
-    });
-  });
-
-  // Day click for modal
-  const dayCards = container.querySelectorAll(
-    ".calendar-day:not(.empty), .list-day-card",
-  );
-  const modal = container.querySelector("#dayModal");
-  const closeBtn = container.querySelector("#closeModal");
-  const modalTitle = container.querySelector("#modalTitle");
-  const modalBody = container.querySelector("#modalBody");
-
-  if (modal && closeBtn) {
-    dayCards.forEach((card) => {
-      card.addEventListener("click", () => {
-        const dayNum = card.dataset.day;
-        modalTitle.textContent = `Day ${dayNum} Details`;
-
-        // Get the day data from the card
-        const contentType = card.classList.contains("value")
-          ? "Value"
-          : card.classList.contains("authority")
-            ? "Authority"
-            : card.classList.contains("engagement")
-              ? "Engagement"
-              : "CTA";
-
-        modalBody.innerHTML = `
-                    <div class="modal-section">
-                        <h4>Content Type</h4>
-                        <p><span class="content-type-badge ${contentType.toLowerCase()}">${contentType}</span></p>
-                    </div>
-                    <div class="modal-section">
-                        <h4>Description</h4>
-                        <p>${card.querySelector(".day-description, .list-day-content p")?.textContent || "Strategic content for this day"}</p>
-                    </div>
-                    <div class="modal-section">
-                        <h4>💡 Pro Tip</h4>
-                        <p>Engage with your audience within the first hour of posting for maximum algorithm boost!</p>
-                    </div>
-                `;
-
-        modal.classList.add("active");
-      });
-    });
-
-    closeBtn.addEventListener("click", () => {
-      modal.classList.remove("active");
-    });
-
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        modal.classList.remove("active");
-      }
-    });
-  }
-}
 
 function formatOutput(content) {
   if (!content) return "<p>No output generated.</p>";
