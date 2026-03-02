@@ -123,8 +123,15 @@ Build the 30-day narrative arc calendar. Every post must feel like it was writte
     const data = await response.json();
     const rawContent = data.choices[0].message.content;
 
+    // Strip markdown code fences if the model wrapped the JSON (e.g. ```json ... ```)
+    const cleaned = rawContent
+      .trim()
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/\s*```$/, "")
+      .trim();
+
     try {
-      return JSON.parse(rawContent);
+      return JSON.parse(cleaned);
     } catch (e) {
       throw new Error(
         `CalendarAgent: Failed to parse JSON response from planning API. Raw content: ${rawContent.substring(0, 200)}...`,
