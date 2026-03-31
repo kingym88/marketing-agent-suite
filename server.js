@@ -1,5 +1,6 @@
 const express = require("express");
 const path = require("path");
+const rateLimit = require("express-rate-limit");
 
 // Load env vars
 require("dotenv").config();
@@ -8,18 +9,30 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.PERPLEXITY_API_KEY;
 
-// Parse JSON bodies (increase limit for large AI responses)
-app.use(express.json({ limit: "10mb" }));
+// Parse JSON bodies (limit to prevent DoS)
+app.use(express.json({ limit: "1mb" }));
 
-// Serve static files from current directory
-app.use(express.static(__dirname));
+// Rate limit for proxy endpoint
+const chatLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // Limit each IP to 30 requests per window
+  message: { error: { message: "Too many requests from this IP. Please try again later." } }
+});
+
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, "public")));
 
 // Proxy endpoint for Perplexity API (avoids CORS issues)
-app.post("/api/chat", async (req, res) => {
+app.post("/api/chat", chatLimiter, async (req, res) => {
   if (!API_KEY) {
     return res
       .status(500)
       .json({ error: { message: "Server missing API configuration" } });
+  }
+
+  // Validate payload structure
+  if (!req.body || !req.body.messages || !Array.isArray(req.body.messages)) {
+    return res.status(400).json({ error: { message: "Invalid payload structure" } });
   }
 
   // 120s timeout — large calendar requests can take 60-90s
@@ -57,8 +70,8 @@ app.post("/api/chat", async (req, res) => {
 });
 
 // Serve index.html for root route
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 app.listen(PORT, () => {

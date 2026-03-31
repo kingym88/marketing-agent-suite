@@ -756,17 +756,21 @@ function displayAgentOutput(agent, content) {
   if (outputEl) {
     outputEl.style.display = "block";
 
+    let rawHtml = "";
     // Special handling for different agents
     if (agent === "calendar") {
-      outputEl.innerHTML = renderCalendarView(content);
+      rawHtml = renderCalendarView(content);
       setupCalendarEventListeners(outputEl);
     } else if (agent === "persona") {
-      outputEl.innerHTML = renderPersonaCards(content);
+      rawHtml = renderPersonaCards(content);
     } else if (agent === "impersonator") {
-      outputEl.innerHTML = renderImpersonatorCards(content);
+      rawHtml = renderImpersonatorCards(content);
     } else {
-      outputEl.innerHTML = formatOutput(content);
+      rawHtml = formatOutput(content);
     }
+    
+    // Sanitize before updating DOM
+    outputEl.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(rawHtml) : rawHtml;
   }
 }
 
